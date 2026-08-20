@@ -1,0 +1,30 @@
+# node / build
+node_modules
+npm-debug.log
+.npm
+dist
+build
+.vite
+coverage
+
+# env / secrets
+.env
+.env.local
+*.pem
+keys/
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# tests
+.nyc_output
+*.log
+
+# docker
+docker-compose.override.yml
