@@ -84,7 +84,7 @@ usa Recharts; idealmente se reemplaza por `'nonce-…'` cuando hagamos SSR.
 | A05   | Security Misconfiguration                  | helmet + CSP + `x-powered-by` deshabilitado |
 | A06   | Vulnerable Components                      | `pnpm audit --prod --audit-level=high` en CI (bloquea merge) + Trivy fs |
 | A07   | Identification & Authentication            | argon2 + rate limit login + refresh con revocación |
-| A08   | Software & Data Integrity                  | Imágenes Docker pineadas a versión (Node 22.23.2, nginx 1.31.4, python 3.12.14) + SBOM/attestation en CI |
+| A08   | Software & Data Integrity                  | Imágenes Docker pineadas a versión (Node 22.23.2, nginx 1.31.4, python 3.12.14) + SBOM CycloneDX en CI (artefacto) |
 | A09   | Security Logging & Monitoring              | pino + access log + /metrics                |
 | A10   | SSRF                                       | Las URLs salientes (Ollama) están en allowlist por env |
 
@@ -103,4 +103,5 @@ usa Recharts; idealmente se reemplaza por `'nonce-…'` cuando hagamos SSR.
 - OpenTelemetry tracing → backlog
 - Playwright E2E → backlog
 - Push de imágenes a registry con provenance/SBOM (`build-push-action`) → manual (requiere credenciales)
+- Attestation SLSA (actions/attest-build-provenance) → requiere repo público o GitHub Advanced Security (el repo es privado)
 - Firma de imágenes Docker (cosign) → backlog
