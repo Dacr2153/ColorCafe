@@ -10,6 +10,8 @@ docs/FlujoEsperadoCereza.svg
 .qodo/
 .vscode/
 .idea/
+.agents
+skills-lock.json
 
 # Secretos y entorno
 .env
@@ -20,6 +22,7 @@ keys/
 
 # Dependencias y builds
 node_modules/
+.pnpm-store/
 dist/
 dist-ssr/
 build/
@@ -35,6 +38,8 @@ __pycache__/
 # Logs
 *.log
 npm-debug.log*
+pnpm-debug.log*
+pnpm-error.log*
 
 # Sistema operativo
 .DS_Store

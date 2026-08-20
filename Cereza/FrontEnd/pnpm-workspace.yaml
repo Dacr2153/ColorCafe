@@ -1,0 +1,7 @@
+# pnpm v11 lee configuración de este archivo (no de package.json "pnpm" ni .npmrc para no-auth).
+# supply-chain: scripts de instalación permitidos explícitamente (allowBuilds); lo demás se bloquea.
+# engineStrict: instalar con Node distinto a engines y fallar con error (CI/Docker usan 22.23.2).
+allowBuilds:
+  esbuild: true
+
+engineStrict: true
