@@ -1,0 +1,109 @@
+# Docker Compose — Producción CaféVision
+# Diferencias vs dev:
+#   - Imágenes construidas en stage `prod`
+#   - Sin bind mounts en src (código congelado)
+#   - Sin puertos públicos directos (todo detrás de un reverse-proxy externo)
+#   - Healthchecks estrictos
+#   - Restart=always, recursos limitados
+#
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Vars obligatorias en .env: POSTGRES_PASSWORD, REDIS_PASSWORD, MINIO_ROOT_PASSWORD,
+#   PUBLIC_API_URL, PUBLIC_WS_URL
+
+name: cafevision
+
+services:
+  postgres:
+    restart: always
+    ports: []     # no exponer al host en prod
+    environment:
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: "2G" }
+
+  redis:
+    restart: always
+    ports: []
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: "768M" }
+
+  minio:
+    restart: always
+    ports:
+      - "127.0.0.1:9000:9000"   # sólo accesible localmente; el bucket público
+                                # se sirve detrás del reverse-proxy
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: "1G" }
+
+  ollama:
+    restart: always
+    ports: []
+    deploy:
+      resources:
+        limits: { cpus: "4.0", memory: "8G" }
+
+  backend:
+    build:
+      context: ./Cereza/Backend
+      dockerfile: Dockerfile
+      target: prod
+    image: cafevision/backend:${IMAGE_TAG:-latest}
+    restart: always
+    volumes:
+      - ./Cereza/Backend/keys:/app/keys:ro
+      - ./Cereza/Backend/migrations:/app/migrations:ro
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "127.0.0.1:3001:3001"
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: "1.5G" }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  python-analysis:
+    restart: always
+    volumes: []   # imagen sellada, sin bind mounts
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: "1.5G" }
+
+  frontend:
+    build:
+      context: ./Cereza/FrontEnd
+      dockerfile: Dockerfile
+      target: prod
+      args:
+        VITE_API_BASE_URL: ${PUBLIC_API_URL}
+        VITE_WS_URL: ${PUBLIC_WS_URL}
+    image: cafevision/frontend:${IMAGE_TAG:-latest}
+    restart: always
+    volumes: []
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: "256M" }
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

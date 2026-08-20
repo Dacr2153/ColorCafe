@@ -1,0 +1,211 @@
+# Docker Compose — Desarrollo local CaféVision
+# Arquitectura: monolito Node.js + microservicio Python (único) + infra
+
+name: cafevision
+
+services:
+  # ---------------------------------------------------------------------------
+  # INFRAESTRUCTURA
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: cafevision-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cafevision}
+      POSTGRES_USER: ${POSTGRES_USER:-cafevision}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cafevision_dev_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cafevision}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "127.0.0.1:5432:5432"   # solo localhost en desarrollo
+    networks: [db-net]
+
+  redis:
+    image: redis:7-alpine
+    container_name: cafevision-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-cafevision_dev_redis}
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-cafevision_dev_redis}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks: [db-net]
+
+  minio:
+    image: minio/minio:latest
+    container_name: cafevision-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-cafevision_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-cafevision_dev_minio_password_min_32_chars_x}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    networks: [private-net]
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: cafevision-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./scripts/init-minio.sh:/init-minio.sh:ro
+    entrypoint: ["/bin/sh", "/init-minio.sh"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-cafevision_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-cafevision_dev_minio_password_min_32_chars_x}
+    networks: [private-net]
+    restart: "no"
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cafevision-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ports:
+      - "127.0.0.1:11434:11434"
+    networks: [private-net]
+    # GPU passthrough opcional: descomenta si tienes NVIDIA Container Toolkit
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ---------------------------------------------------------------------------
+  # APLICACIÓN
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./Cereza/Backend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: cafevision-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cafevision}:${POSTGRES_PASSWORD:-cafevision_dev_password}@postgres:5432/${POSTGRES_DB:-cafevision}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-cafevision_dev_redis}@redis:6379/0
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-cafevision_minio}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-cafevision_dev_minio_password_min_32_chars_x}
+      MINIO_BUCKET_ANALYSES: cafe-analyses
+      MINIO_BUCKET_DOCUMENTS: cafe-documents
+      MINIO_BUCKET_MARKETPLACE: cafe-marketplace
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-mistral:7b-instruct}
+      PYTHON_ANALYSIS_URL: http://python-analysis:8000
+      JWT_PRIVATE_KEY_PATH: /app/keys/private.pem
+      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+      JWT_ACCESS_EXPIRES: 15m
+      JWT_REFRESH_EXPIRES: 7d
+      SKIP_MIGRATIONS: ${SKIP_MIGRATIONS:-0}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@cafevision.local}
+    volumes:
+      - ./Cereza/Backend/src:/app/src:rw
+      - ./Cereza/Backend/migrations:/app/migrations:ro
+      - ./Cereza/Backend/keys:/app/keys:ro
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks: [db-net, private-net, public-net]
+
+  python-analysis:
+    build:
+      context: ./Cereza/PythonAnalysis
+      dockerfile: Dockerfile
+    container_name: cafevision-python
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ALGORITHM_VERSION: ${ALGORITHM_VERSION:-heuristic-v1}
+      MAX_IMAGE_MB: ${MAX_IMAGE_MB:-20}
+    volumes:
+      - ./Cereza/PythonAnalysis/app:/srv/app:rw
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks: [private-net]
+    # GPU opcional (mismo bloque que ollama si está disponible)
+
+  frontend:
+    build:
+      context: ./Cereza/FrontEnd
+      dockerfile: Dockerfile
+      target: dev
+    container_name: cafevision-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://localhost:3001
+      VITE_WS_URL: ws://localhost:3001/ws
+    volumes:
+      - ./Cereza/FrontEnd/src:/app/src:rw
+      - ./Cereza/FrontEnd/public:/app/public:ro
+    ports:
+      - "3000:3000"
+    networks: [public-net]
+
+# =============================================================================
+# Redes y volúmenes
+# =============================================================================
+networks:
+  public-net:
+    driver: bridge
+  private-net:
+    driver: bridge
+  db-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  ollama_data:

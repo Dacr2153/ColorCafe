@@ -1,0 +1,43 @@
+# Archivos explícitamente excluidos del repositorio
+PromptMaestro.md
+Cereza/Explicacion.txt
+Cereza/Requerimientos.txt
+Cereza/.qodo/
+Cereza/.vscode/
+
+# IDE / local
+.qodo/
+.vscode/
+.idea/
+
+# Secretos y entorno
+.env
+.env.*
+!.env.example
+keys/
+*.pem
+
+# Dependencias y builds
+node_modules/
+dist/
+dist-ssr/
+build/
+coverage/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Docker override local
+docker-compose.override.yml
