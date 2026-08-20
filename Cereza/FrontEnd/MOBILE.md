@@ -19,8 +19,8 @@ dist/  (build Vite)
 
 ```bash
 cd Cereza/FrontEnd
-npm run build
-npx serve dist          # abrir http://localhost:3000, DevTools → Application → Manifest
+pnpm run build
+pnpm dlx serve dist     # abrir http://localhost:3000, DevTools → Application → Manifest
 ```
 
 Estrategias Workbox (ver [vite.config.ts](vite.config.ts)):
@@ -43,19 +43,19 @@ recuperar conexión.
 
 ```bash
 cd Cereza/FrontEnd
-npm i -D @capacitor/cli @capacitor/core @capacitor/android \
+pnpm add -D @capacitor/cli @capacitor/core @capacitor/android \
          @capacitor/splash-screen @capacitor/status-bar
-npm run build
-npx cap add android
-npx cap copy android
+pnpm run build
+pnpm exec cap add android
+pnpm exec cap copy android
 ```
 
 ### Builds posteriores
 
 ```bash
-npm run build
-npx cap copy android
-npx cap open android        # Android Studio para release signed APK / AAB
+pnpm run build
+pnpm exec cap copy android
+pnpm exec cap open android        # Android Studio para release signed APK / AAB
 ```
 
 ### Permisos requeridos en `android/app/src/main/AndroidManifest.xml`
@@ -75,8 +75,8 @@ La app embebe la URL base en tiempo de build (variables `VITE_API_BASE_URL` y
 ```bash
 VITE_API_BASE_URL=https://api.cafevision.co \
 VITE_WS_URL=wss://api.cafevision.co/ws \
-npm run build
-npx cap copy android
+pnpm run build
+pnpm exec cap copy android
 ```
 
 NO incrustar tokens ni secretos en el bundle: el JWT se obtiene en runtime vía

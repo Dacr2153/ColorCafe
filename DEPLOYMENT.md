@@ -56,6 +56,9 @@ EMAIL_FROM=noreply@cafevision.co
 PUBLIC_API_URL=https://api.cafevision.co
 PUBLIC_WS_URL=wss://api.cafevision.co/ws
 
+# CORS — orígenes permitidos en el backend (comma-separated)
+CORS_ORIGINS=https://app.cafevision.co,http://localhost
+
 # Versionado
 IMAGE_TAG=v1.0.0
 ```
@@ -78,7 +81,7 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml build
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d postgres redis minio minio-init
 
 # 4) Aplicar migraciones
-docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend npm run migrate
+docker compose -f docker-compose.yml -f docker-compose.prod.yml run --rm backend pnpm run migrate
 
 # 5) Levantar la app
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
@@ -133,6 +136,16 @@ de mergear (sólo `ADD COLUMN ... NULL`, índices `CONCURRENTLY`, etc.).
   pub/sub (pendiente, ver FASE 8).
 - **MinIO single-node**: para alta disponibilidad real cambiar a modo
   distribuido (4 nodos) o usar S3 directamente.
-- **Sin CI/CD incluido**: el repositorio queda preparado para un pipeline
-  externo (GitHub Actions / GitLab CI) que ejecute `typecheck + test + build +
-  push`.
+- **CI/CD**: el repositorio incluye GitHub Actions (`.github/workflows/ci.yml`
+  con tests + audit + Trivy + SBOM, `codeql.yml`, `dependency-review.yml`) y
+  Dependabot (`.github/dependabot.yml`). El push de imágenes a un registry con
+  provenance/SBOM (`build-push-action` con `provenance: true`) requiere
+  credenciales y sigue como paso manual.
+- **Imágenes e imágenes base pineadas**: Node 22.23.2, nginx 1.31.4, python
+  3.12.14, Timescale 2.29.2-pg15, Redis 7.4.10, MinIO RELEASE.2025-09-07,
+  Ollama 0.32.15. Para fijar por digest SHA-256: `docker buildx imagetools
+  inspect <imagen>:<tag> --format '{{.Manifest.Digest}}'`.
+- **Contenedores de producción**: rootfs `read_only`, `cap_drop: ALL`,
+  `no-new-privileges`, usuario no-root y tmpfs acotados. Validar el arranque
+  completo con `docker compose -f docker-compose.yml -f docker-compose.prod.yml
+  up -d` tras cada cambio.

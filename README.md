@@ -68,7 +68,8 @@ ColorCafe/
 ## Requisitos
 
 - Docker + Docker Compose (v2)
-- Node.js >= 20 (solo para desarrollo fuera de contenedores)
+- Node.js 22 LTS (fijado en `Cereza/Backend/.nvmrc` y `Cereza/FrontEnd/.nvmrc`)
+- pnpm 11.x (fijado vía `packageManager`; `corepack` o `pnpm/action-setup` en CI)
 - Make (opcional, para usar los atajos del `Makefile`)
 
 ## Inicio rápido (desarrollo local)
@@ -106,15 +107,24 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 ```bash
 # Backend
-cd Cereza/Backend && npm test && npm run typecheck && npm run lint
+cd Cereza/Backend && pnpm install --frozen-lockfile && pnpm test && pnpm run typecheck && pnpm run lint
 
 # Frontend
-cd Cereza/FrontEnd && npm run lint && npm run build
+cd Cereza/FrontEnd && pnpm install --frozen-lockfile && pnpm run lint && pnpm run build
+
+# Auditoría de dependencias (producción)
+cd Cereza/Backend && pnpm audit --prod --audit-level=high
+cd Cereza/FrontEnd && pnpm audit --prod --audit-level=high
 ```
 
 ## Notas
 
 - Las llaves RSA de JWT y los `.env` **no** se versionan; genera las tuyas con
   `make keys`. Consulta `Cereza/Backend/SECURITY.md` para más detalles de seguridad.
+- Se usa **pnpm** con `pnpm-lock.yaml` versionados y `--frozen-lockfile` en CI,
+  Docker y producción (reproducibilidad y supply-chain). Los scripts de instalación
+  de dependencias están restringidos a `onlyBuiltDependencies` (ver
+  `Cereza/Backend/pnpm-workspace.yaml`).
+- El CORS del backend sólo acepta los orígenes de `CORS_ORIGINS` (`.env.example`).
 - El modelo de análisis actual es heurístico (`heuristic-v1`) y no sustituye un
   análisis de laboratorio.

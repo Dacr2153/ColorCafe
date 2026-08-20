@@ -42,11 +42,11 @@ logs-backend:       ## Logs solo del backend
 
 .PHONY: migrate
 migrate:            ## Ejecuta migraciones SQL manualmente (backend lo hace al iniciar)
-	$(COMPOSE) exec backend npm run migrate
+	$(COMPOSE) exec backend pnpm run migrate
 
 .PHONY: migrate-down
 migrate-down:       ## Rollback de la última migración
-	$(COMPOSE) exec backend npm run migrate:down
+	$(COMPOSE) exec backend pnpm run migrate:down
 
 .PHONY: shell-db
 shell-db:           ## Shell psql contra postgres
@@ -64,9 +64,14 @@ pull-mistral:       ## Descarga el modelo Mistral en Ollama
 ps:                 ## Estado de los contenedores
 	$(COMPOSE) ps
 
+.PHONY: audit
+audit:              ## Auditoría de dependencias de producción (backend + frontend)
+	$(COMPOSE) run --rm --no-deps backend pnpm audit --prod --audit-level=high
+	$(COMPOSE) run --rm --no-deps frontend pnpm audit --prod --audit-level=high
+
 .PHONY: build-android
 build-android:      ## Build APK Android via Capacitor (frontend)
-	cd Cereza/FrontEnd && npm run build && npx cap sync android && cd android && ./gradlew assembleRelease
+	cd Cereza/FrontEnd && pnpm run build && pnpm exec cap sync android && cd android && ./gradlew assembleRelease
 
 .PHONY: prod
 prod:               ## Levanta en modo producción (requiere docker-compose.prod.yml)

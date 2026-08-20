@@ -12,7 +12,7 @@
 | JWT                                      | RS256, llaves separadas, issuer/audience validados               |
 | Refresh tokens                           | Rotación + revocación por sesión                                 |
 | Rate limit                               | Token bucket por IP+ruta — `src/core/middleware/ratelimit.ts`    |
-| CORS                                     | `credentials: true`, origen explícito en producción              |
+| CORS                                     | Allowlist vía `CORS_ORIGINS` (sin reflejar origen) — `src/core/app.ts` |
 | Headers                                  | `helmet` activo, CSP gestionada por Nginx en prod                |
 | SQL injection                            | Sólo `pg.query(text, params)` parametrizado, sin string concat   |
 | XSS en API                               | Respuestas JSON; sanitización dejada al frontend                 |
@@ -43,9 +43,10 @@
 
 ```bash
 cd Cereza/Backend
-npm run typecheck    # tsc --noEmit
-npm run lint
-npm test             # vitest run
+pnpm install --frozen-lockfile
+pnpm run typecheck    # tsc --noEmit
+pnpm run lint
+pnpm test             # vitest run
 ```
 
 ## Política de Content Security Policy (Nginx)
@@ -81,15 +82,25 @@ usa Recharts; idealmente se reemplaza por `'nonce-…'` cuando hagamos SSR.
 | A03   | Injection                                  | SQL parametrizado + validación de entrada |
 | A04   | Insecure Design                            | Vertical slices + máquina de estados de órdenes |
 | A05   | Security Misconfiguration                  | helmet + CSP + `x-powered-by` deshabilitado |
-| A06   | Vulnerable Components                      | `npm audit` en CI (pendiente automatizar) |
+| A06   | Vulnerable Components                      | `pnpm audit --prod --audit-level=high` en CI (bloquea merge) + Trivy fs |
 | A07   | Identification & Authentication            | argon2 + rate limit login + refresh con revocación |
-| A08   | Software & Data Integrity                  | Imágenes Docker con tag inmutable + cosign (pendiente) |
+| A08   | Software & Data Integrity                  | Imágenes Docker pineadas a versión (Node 22.23.2, nginx 1.31.4, python 3.12.14) + SBOM/attestation en CI |
 | A09   | Security Logging & Monitoring              | pino + access log + /metrics                |
 | A10   | SSRF                                       | Las URLs salientes (Ollama) están en allowlist por env |
+
+## Supply-chain
+
+- **pnpm 11.3.0** fijado vía `packageManager` (corepack) y `pnpm-lock.yaml`
+  versionados; instalaciones siempre con `--frozen-lockfile`.
+- Scripts de instalación de dependencias restringidos a `onlyBuiltDependencies`
+  (`pnpm-workspace.yaml`).
+- CI: `pnpm audit --prod --audit-level=high`, Trivy HIGH/CRITICAL, CodeQL,
+  Dependency Review y Dependabot (`pnpm-lock.yaml` + Dockerfiles).
+- Node.js fijado a **22 LTS (22.23.2)** en Docker, CI y `.nvmrc`.
 
 ## Pendientes honestos
 
 - OpenTelemetry tracing → backlog
 - Playwright E2E → backlog
-- `npm audit` en CI pipeline → backlog
+- Push de imágenes a registry con provenance/SBOM (`build-push-action`) → manual (requiere credenciales)
 - Firma de imágenes Docker (cosign) → backlog
