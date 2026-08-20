@@ -1,0 +1,64 @@
+# Actualizaciones automáticas de dependencias.
+# pnpm-lock.yaml se mantiene reproducible: Dependabot genera PRs versionados.
+# Los PRs deben pasar CI (audit + review) antes del merge.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/Cereza/Backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Bogota"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "security"]
+    versioning-strategy: increase-if-necessary
+    groups:
+      pnpm-minor-and-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "npm"
+    directory: "/Cereza/FrontEnd"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "America/Bogota"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "security"]
+    versioning-strategy: increase-if-necessary
+    groups:
+      pnpm-minor-and-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "docker"
+    directory: "/Cereza/Backend"
+    schedule:
+      interval: "weekly"
+    labels: ["docker", "security"]
+
+  - package-ecosystem: "docker"
+    directory: "/Cereza/FrontEnd"
+    schedule:
+      interval: "weekly"
+    labels: ["docker", "security"]
+
+  - package-ecosystem: "docker"
+    directory: "/Cereza/PythonAnalysis"
+    schedule:
+      interval: "weekly"
+    labels: ["docker", "security"]
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["docker", "security"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["github-actions", "security"]
