@@ -1,42 +1,55 @@
 # ============================================================================
 # CaféVision Backend — Multi-stage Dockerfile
+#   Runtime: Node 22 LTS pinateña (22.23.2) + pnpm 11.3.0 (corepack/packageManager)
+#   Supply-chain: installs siempre con `--frozen-lockfile` y scripts de build
+#   restringidos a onlyBuiltDependencies (pnpm-workspace.yaml).
 # ============================================================================
 
-# ---------- stage: deps ----------
-FROM node:20-alpine AS deps
+# ---------- stage: deps (install completo para dev/build) ----------
+FROM node:22.23.2-alpine AS deps
 WORKDIR /app
-RUN apk add --no-cache python3 make g++ vips-dev
-COPY package.json package-lock.json* ./
-RUN npm install --no-audit --no-fund
+RUN apk add --no-cache python3 make g++ vips-dev && \
+    corepack enable && corepack prepare pnpm@11.3.0 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile
 
 # ---------- stage: dev ----------
-FROM node:20-alpine AS dev
+FROM node:22.23.2-alpine AS dev
 WORKDIR /app
-RUN apk add --no-cache vips
+RUN apk add --no-cache vips && \
+    corepack enable && corepack prepare pnpm@11.3.0 --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json ./
 COPY src ./src
 COPY migrations ./migrations
 EXPOSE 3001
 ENV NODE_ENV=development
-CMD ["npx", "tsx", "watch", "src/main.ts"]
+CMD ["pnpm", "dev"]
 
 # ---------- stage: build ----------
-FROM node:20-alpine AS build
+FROM node:22.23.2-alpine AS build
 WORKDIR /app
-RUN apk add --no-cache python3 make g++ vips-dev
+RUN apk add --no-cache python3 make g++ vips-dev && \
+    corepack enable && corepack prepare pnpm@11.3.0 --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json tsconfig.json ./
 COPY src ./src
-RUN npx tsc -p tsconfig.json
+RUN pnpm exec tsc -p tsconfig.json
+
+# ---------- stage: prod-deps (instala prod con toolchain para nativos) ----------
+FROM node:22.23.2-alpine AS prod-deps
+WORKDIR /app
+RUN apk add --no-cache python3 make g++ vips-dev && \
+    corepack enable && corepack prepare pnpm@11.3.0 --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+RUN pnpm install --prod --frozen-lockfile
 
 # ---------- stage: prod ----------
-FROM node:20-alpine AS prod
+FROM node:22.23.2-alpine AS prod
 WORKDIR /app
 RUN apk add --no-cache vips tini && \
     addgroup -S app && adduser -S app -G app
-COPY package.json package-lock.json* ./
-RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY migrations ./migrations
 USER app

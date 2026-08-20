@@ -58,12 +58,16 @@ services:
       target: prod
     image: cafevision/backend:${IMAGE_TAG:-latest}
     restart: always
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
     volumes:
       - ./Cereza/Backend/keys:/app/keys:ro
       - ./Cereza/Backend/migrations:/app/migrations:ro
     environment:
       NODE_ENV: production
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
       - "127.0.0.1:3001:3001"
     deploy:
@@ -78,6 +82,9 @@ services:
 
   python-analysis:
     restart: always
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
     volumes: []   # imagen sellada, sin bind mounts
     deploy:
       resources:
@@ -93,6 +100,12 @@ services:
         VITE_WS_URL: ${PUBLIC_WS_URL}
     image: cafevision/frontend:${IMAGE_TAG:-latest}
     restart: always
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:size=16m,mode=1777
+      - /var/run:size=4m,mode=1777
+      - /var/log/nginx:size=8m,mode=1777
+      - /tmp:size=32m,mode=1777
     volumes: []
     ports:
       - "127.0.0.1:8080:8080"

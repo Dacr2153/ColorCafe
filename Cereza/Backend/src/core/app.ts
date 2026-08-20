@@ -29,10 +29,22 @@ export async function buildApp({ broker, features }: BuildAppDeps): Promise<Appl
   app.use(helmet({
     contentSecurityPolicy: false, // gestionado por nginx en producción
   }));
+
+  // CORS restrictivo: sólo orígenes en allowlist (CORS_ORIGINS). No reflejar
+  // el origen de la petición (evita CSRF cross-site con credentials).
+  const allowedOrigins = new Set(broker.config.corsOrigins);
   app.use(cors({
-    origin: true,
+    origin(origin, cb) {
+      // Peticiones sin Origin (curl, SSR, same-origin, apps nativas): permitidas.
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.has(origin)) return cb(null, origin);
+      // Origen no autorizado: omitir headers CORS (el navegador bloqueará la lectura).
+      return cb(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+    maxAge: 600,
   }));
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));

@@ -8,7 +8,7 @@ services:
   # INFRAESTRUCTURA
   # ---------------------------------------------------------------------------
   postgres:
-    image: timescale/timescaledb:latest-pg15
+    image: timescale/timescaledb:2.29.2-pg15
     container_name: cafevision-postgres
     restart: unless-stopped
     environment:
@@ -27,7 +27,7 @@ services:
     networks: [db-net]
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.10-alpine
     container_name: cafevision-redis
     restart: unless-stopped
     command: >
@@ -48,7 +48,7 @@ services:
     networks: [db-net]
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: cafevision-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -68,7 +68,7 @@ services:
     networks: [private-net]
 
   minio-init:
-    image: minio/mc:latest
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
     container_name: cafevision-minio-init
     depends_on:
       minio:
@@ -83,7 +83,7 @@ services:
     restart: "no"
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.32.15
     container_name: cafevision-ollama
     restart: unless-stopped
     volumes:
@@ -115,6 +115,10 @@ services:
       target: dev
     container_name: cafevision-backend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     depends_on:
       postgres:
         condition: service_healthy
@@ -146,6 +150,7 @@ services:
       SKIP_MIGRATIONS: ${SKIP_MIGRATIONS:-0}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       EMAIL_FROM: ${EMAIL_FROM:-noreply@cafevision.local}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost}
     volumes:
       - ./Cereza/Backend/src:/app/src:rw
       - ./Cereza/Backend/migrations:/app/migrations:ro
@@ -160,6 +165,10 @@ services:
       dockerfile: Dockerfile
     container_name: cafevision-python
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ALGORITHM_VERSION: ${ALGORITHM_VERSION:-heuristic-v1}
@@ -181,6 +190,10 @@ services:
       target: dev
     container_name: cafevision-frontend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     depends_on:
       - backend
     environment:
@@ -190,7 +203,7 @@ services:
       - ./Cereza/FrontEnd/src:/app/src:rw
       - ./Cereza/FrontEnd/public:/app/public:ro
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"   # solo localhost en desarrollo (uniform con backend)
     networks: [public-net]
 
 # =============================================================================

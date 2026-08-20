@@ -10,6 +10,13 @@ const configSchema = z.object({
   port: z.coerce.number().int().positive().default(3001),
   logLevel: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 
+  /** Orígenes permitidos para CORS (lista separada por comas). */
+  corsOrigins: z
+    .string()
+    .min(1)
+    .default('http://localhost:3000')
+    .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
+
   databaseUrl: z.string().url().or(z.string().startsWith('postgres')),
   redisUrl: z.string().url().or(z.string().startsWith('redis')),
 
@@ -66,6 +73,7 @@ export function loadConfig(): AppConfig {
     nodeEnv: process.env.NODE_ENV,
     port: process.env.PORT,
     logLevel: process.env.LOG_LEVEL,
+    corsOrigins: process.env.CORS_ORIGINS,
     databaseUrl: process.env.DATABASE_URL ?? '',
     redisUrl: process.env.REDIS_URL ?? '',
     jwt: {
