@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Maskable: contenido dentro del safe-zone circular de radio ~192 (40% del lado).
+       El fondo cubre toda la superficie. -->
+  <rect width="512" height="512" fill="#6B4423"/>
+  <g transform="translate(0 0) scale(0.78) translate(72 72)">
+    <circle cx="160" cy="160" r="200" fill="#8B5A2B" opacity="0.35"/>
+    <g stroke="#F0E9DA" stroke-width="14" stroke-linecap="round" fill="none" opacity="0.85">
+      <path d="M210 110 Q190 140 210 170 Q230 200 210 230"/>
+      <path d="M256 95  Q236 125 256 155 Q276 185 256 215"/>
+      <path d="M302 110 Q282 140 302 170 Q322 200 302 230"/>
+    </g>
+    <path d="M120 270 H392 V370 Q392 430 332 430 H180 Q120 430 120 370 Z"
+          fill="#F8F4EC" stroke="#3A2515" stroke-width="10"/>
+    <ellipse cx="256" cy="280" rx="125" ry="22" fill="#3A2515"/>
+    <path d="M392 300 Q450 300 450 350 Q450 400 392 400"
+          fill="none" stroke="#3A2515" stroke-width="14" stroke-linecap="round"/>
+    <ellipse cx="256" cy="445" rx="170" ry="20" fill="#F0E9DA" stroke="#3A2515" stroke-width="8"/>
+    <g transform="translate(330 180) rotate(25)">
+      <ellipse cx="0" cy="0" rx="22" ry="32" fill="#4F7942"/>
+      <path d="M0 -28 Q-4 0 0 28" stroke="#3D5E33" stroke-width="4" fill="none" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

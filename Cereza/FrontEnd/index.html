@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#6B4423" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15100A" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="CaféVision — Análisis profesional y trazable de granos de café para caficultores y compradores." />
+
+    <!-- Iconos -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" type="image/png" sizes="96x96" href="/pwa-96.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- PWA / Android -->
+    <meta name="application-name" content="CaféVision" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CaféVision" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-TileColor" content="#6B4423" />
+
+    <title>CaféVision · Análisis honesto de café</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="CaféVision" />
+    <meta property="og:description" content="Análisis profesional del café que produces. Datos reales, sin valores inventados." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/pwa-512.png" />
+
+    <!-- Fuente -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+      :root { color-scheme: light dark; }
+      html, body { margin: 0; height: 100%; background: #F8F4EC; }
+      @media (prefers-color-scheme: dark) { html, body { background: #15100A; } }
+      body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      .cv-splash {
+        position: fixed; inset: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 18px;
+        background:
+          radial-gradient(circle at 0% 0%, #EBDEC8 0%, transparent 45%),
+          radial-gradient(circle at 100% 50%, #DDEAD3 0%, transparent 40%),
+          #F8F4EC;
+      }
+      @media (prefers-color-scheme: dark) {
+        .cv-splash {
+          background:
+            radial-gradient(circle at 0% 0%, #3A2916 0%, transparent 45%),
+            radial-gradient(circle at 100% 50%, #2A3A22 0%, transparent 40%),
+            #15100A;
+        }
+      }
+      .cv-splash-logo {
+        width: 72px; height: 72px; border-radius: 20px;
+        background: #6B4423; color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 12px 32px rgba(42, 31, 18, 0.18);
+        animation: cv-pop 600ms cubic-bezier(.2,.7,.2,1) both;
+      }
+      .cv-splash-spinner {
+        width: 32px; height: 32px;
+        border: 3px solid rgba(107, 68, 35, 0.18);
+        border-top-color: #6B4423;
+        border-radius: 50%;
+        animation: cv-spin 800ms linear infinite;
+      }
+      @media (prefers-color-scheme: dark) {
+        .cv-splash-spinner { border-color: rgba(204, 149, 89, 0.2); border-top-color: #CC9559; }
+        .cv-splash-logo    { background: #CC9559; color: #15100A; }
+      }
+      .cv-splash-text { font-weight: 600; color: #5C4A33; font-size: 14px; letter-spacing: 0.02em; }
+      @media (prefers-color-scheme: dark) { .cv-splash-text { color: #CBB99B; } }
+      @keyframes cv-spin { to { transform: rotate(360deg); } }
+      @keyframes cv-pop  { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+      @media (prefers-reduced-motion: reduce) {
+        .cv-splash-spinner, .cv-splash-logo { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="cv-splash" aria-label="Cargando CaféVision">
+        <div class="cv-splash-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2v2"/><path d="M14 2v2"/>
+            <path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/>
+            <path d="M6 2v2"/>
+          </svg>
+        </div>
+        <div class="cv-splash-spinner" role="status" aria-hidden="true"></div>
+        <div class="cv-splash-text">CaféVision</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <div style="padding: 2rem; text-align: center; font-family: system-ui;">
+        <h1>JavaScript requerido</h1>
+        <p>Esta aplicación requiere JavaScript. Por favor habilítalo y recarga.</p>
+      </div>
+    </noscript>
+  </body>
+</html>

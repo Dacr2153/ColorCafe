@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  html {
+    /* Evita zoom inesperado al rotar en iOS y respeta safe areas */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Scroll suave salvo reduced-motion */
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-text);
+    background: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Mejor experiencia táctil en Android */
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: contain;
+    /* Soporte para notch / barras */
+    padding-left:  env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  /* Inputs: previene zoom en iOS si font-size < 16 */
+  input, select, textarea, button { font-family: inherit; }
+  input, select, textarea {
+    font-size: 16px;
+  }
+  /* Mejor tap-target */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+  img { max-width: 100%; height: auto; }
+
+  ::selection { background: var(--color-primary-soft); color: var(--color-primary); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border); border-radius: 999px;
+    border: 2px solid transparent; background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); background-clip: padding-box; }
+
+  h1, h2, h3, h4 { color: var(--color-text); letter-spacing: -0.01em; }
+  a { color: var(--color-primary); }
+  a:hover { color: var(--color-primary-hover); }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Splash de index.html debe desaparecer al montar React */
+  #root > .cv-splash { display: none; }
+}
