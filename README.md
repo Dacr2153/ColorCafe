@@ -49,10 +49,6 @@ Internet ──► TLS ─────► │  Nginx host edge    │
 
 Más detalles de infraestructura en [DEPLOYMENT.md](./DEPLOYMENT.md).
 
-### Flujo de la aplicación
-
-![Flujo de análisis de cereza](./docs/FlujoEsperadoCereza.svg)
-
 ## Estructura del repositorio
 
 ```
