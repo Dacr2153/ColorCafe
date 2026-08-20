@@ -25,7 +25,6 @@ import type { Storage } from '../../core/storage.js';
 import type { Cache } from '../../core/cache.js';
 import type { JobQueue } from '../../core/queue.js';
 import type { Logger } from '../../core/logger.js';
-import { ANALYSIS_QUEUE_SCHEMA } from '../../core/queue.js';
 import { errors } from '../../core/errors.js';
 
 export interface UploadedImage {

@@ -1,4 +1,3 @@
-/// <reference types="@capacitor/cli" />
 import type { CapacitorConfig } from '@capacitor/cli';
 
 // Capacitor — empaquetado nativo Android (y opcionalmente iOS) sobre el mismo

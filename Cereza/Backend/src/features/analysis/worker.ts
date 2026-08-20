@@ -173,10 +173,10 @@ export function startAnalysisWorker(deps: AnalysisWorkerDeps): () => Promise<voi
         });
         if (email) {
           const link = `${publicBaseUrl}/analyses/${analysisId}`;
-          job.postCommit.push(() =>
-            notify.queueEmail(email, 'analysisCompleted', [nombre || email, analysisId, result.overall_score, link])
-              .catch((e) => log.warn({ err: (e as Error).message, analysisId }, 'queue_email_failed')),
-          );
+          job.postCommit.push(() => {
+            void notify.queueEmail(email, 'analysisCompleted', [nombre || email, analysisId, result.overall_score, link])
+              .catch((e) => log.warn({ err: (e as Error).message, analysisId }, 'queue_email_failed'));
+          });
         }
 
         log.info({ analysisId, userId, overallScore: result.overall_score, grains: result.grains.length },
