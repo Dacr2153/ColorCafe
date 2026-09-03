@@ -6,14 +6,14 @@
 # ============================================================================
 
 # ---------- stage: deps ----------
-FROM node:22.23.2-alpine AS deps
+FROM node:26.8.1-alpine AS deps
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11.3.0 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
 # ---------- stage: dev ----------
-FROM node:22.23.2-alpine AS dev
+FROM node:26.8.1-alpine AS dev
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11.3.0 --activate
 COPY --from=deps /app/node_modules ./node_modules
@@ -23,7 +23,7 @@ ENV NODE_ENV=development
 CMD ["pnpm", "dev"]
 
 # ---------- stage: build ----------
-FROM node:22.23.2-alpine AS build
+FROM node:26.8.1-alpine AS build
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@11.3.0 --activate
 COPY --from=deps /app/node_modules ./node_modules
