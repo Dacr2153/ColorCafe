@@ -6,7 +6,7 @@
 # ============================================================================
 
 # ---------- stage: deps (install completo para dev/build) ----------
-FROM node:22.23.2-alpine AS deps
+FROM node:26.8.1-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache python3 make g++ vips-dev && \
     corepack enable && corepack prepare pnpm@11.3.0 --activate
@@ -14,7 +14,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
 # ---------- stage: dev ----------
-FROM node:22.23.2-alpine AS dev
+FROM node:26.8.1-alpine AS dev
 WORKDIR /app
 RUN apk add --no-cache vips && \
     corepack enable && corepack prepare pnpm@11.3.0 --activate
@@ -27,7 +27,7 @@ ENV NODE_ENV=development
 CMD ["pnpm", "dev"]
 
 # ---------- stage: build ----------
-FROM node:22.23.2-alpine AS build
+FROM node:26.8.1-alpine AS build
 WORKDIR /app
 RUN apk add --no-cache python3 make g++ vips-dev && \
     corepack enable && corepack prepare pnpm@11.3.0 --activate
@@ -37,7 +37,7 @@ COPY src ./src
 RUN pnpm exec tsc -p tsconfig.json
 
 # ---------- stage: prod-deps (instala prod con toolchain para nativos) ----------
-FROM node:22.23.2-alpine AS prod-deps
+FROM node:26.8.1-alpine AS prod-deps
 WORKDIR /app
 RUN apk add --no-cache python3 make g++ vips-dev && \
     corepack enable && corepack prepare pnpm@11.3.0 --activate
@@ -45,7 +45,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --prod --frozen-lockfile
 
 # ---------- stage: prod ----------
-FROM node:22.23.2-alpine AS prod
+FROM node:26.8.1-alpine AS prod
 WORKDIR /app
 RUN apk add --no-cache vips tini && \
     addgroup -S app && adduser -S app -G app
