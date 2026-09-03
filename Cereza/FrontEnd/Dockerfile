@@ -35,7 +35,7 @@ ENV VITE_WS_URL=${VITE_WS_URL}
 RUN pnpm exec vite build
 
 # ---------- stage: prod ----------
-FROM nginx:1.31.4-alpine AS prod
+FROM nginx:1.31.5-alpine AS prod
 RUN apk add --no-cache tini && \
     addgroup -S app && adduser -S -G app app && \
     mkdir -p /var/cache/nginx /var/run && \
